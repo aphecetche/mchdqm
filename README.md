@@ -1,4 +1,4 @@
-Program used to check the Alice DQM MCH agents, but offline, i.e. without the 
+(really) ad-hoc program used to check the Alice DQM MCH shifter agent, but offline, i.e. without the 
 burden of Amore stuff.
 
 Compilation requires Root, AliRoot and AliEn, e.g. something along the lines of :
@@ -11,3 +11,9 @@ cmake $HOME/alice/ali-master/mchdqm \
 ```
 
 (assuming a typical alibuild installation)
+
+Example usage : 
+
+```
+mchqashifter --ocdb local:///alice/data/2016/OCDB --input /alice/data/2016/LHC16j/000256289/raw/16000256289037.8802.root
+```

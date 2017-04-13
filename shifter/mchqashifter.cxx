@@ -33,22 +33,41 @@ int RunNumber(std::string input)
     return reader->GetRunNumber();
 }
 
-void Start(int runNumber)
+void StartRun(int runNumber)
+{
+  // Set event species in AliQAv1
+  for (unsigned int spec = 0; spec < AliRecoParam::kNSpecies; spec++) {
+      AliQAv1::Instance()->SetEventSpecie(AliRecoParam::ConvertIndex(spec));
+  }
+}
+
+void StartCycle(int runNumber)
 {
   fqadmrec->StartOfCycle(AliQAv1::kRAWS,runNumber);
 }
 
-void Loop(std::string input)
+void LoopCycle(std::string input)
 {
     auto reader = std::unique_ptr<AliRawReader>(AliRawReader::Create(input.c_str()));
 
-    fqadmrec->Exec(AliQAv1::kRAWS,reader.get());
+    std::cout << "Number of events to be processed: " << reader->GetNumberOfEvents()
+         << std::endl;
 
+    while ( reader->NextEvent() )
+    {
+        fqadmrec->Exec(AliQAv1::kRAWS,reader.get());
+    }
 }
-void End()
+
+void EndCycle()
 
 {
   fqadmrec->EndOfCycle(AliQAv1::kRAWS);
+}
+
+void EndRun()
+{
+
 }
 
 void Setup(std::string ocdbPath, int runNumber)
@@ -78,8 +97,6 @@ int main(int argc, char* argv[])
         }
     }
   
-    std::cout << "OCDB=" << ocdbPath << " INPUT=" << input << std::endl;
-
     if (input.empty()) {
         std::cerr << "input not specified" << std::endl;
         return Usage();
@@ -99,7 +116,7 @@ int main(int argc, char* argv[])
    
     fqadmrec->Init(AliQAv1::kRAWS,0);
 
-    fqadmrec->SetEventSpecie(AliRecoParam::kLowMult); // FIXME: get this from somewhere
+    // fqadmrec->SetEventSpecie(AliRecoParam::kLowMult); // FIXME: get this from somewhere
 
   // init all species histograms in AliQADataMakerRec
   for (unsigned int es = 0; es < AliRecoParam::kNSpecies; es++) {
@@ -107,11 +124,15 @@ int main(int argc, char* argv[])
     fqadmrec->InitRaws();
   }
 
-  Start(runNumber);
+  StartRun(runNumber);
 
-  Loop(input);
+  StartCycle(runNumber);
+
+  LoopCycle(input);
   
-  End();
+  EndCycle();
+
+  EndRun();
 
   AliCodeTimer::Instance()->Print();
 
